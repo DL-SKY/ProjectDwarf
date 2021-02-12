@@ -1,7 +1,4 @@
 ﻿using ProjectDwarf.Enums;
-using ProjectDwarf.WorldGeneration.Biomes;
-using ProjectDwarf.WorldGeneration.Controllers;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -18,41 +15,19 @@ namespace ProjectDwarf.WorldGeneration
         public int maxNoiseVisible = 75;
 
         //Диапазон верхней границы почвы
-        public readonly Vector2 DIRT_TOP_MIN_RANGE = new Vector2(0.6f, 0.7f);
-        public readonly Vector2 DIRT_TOP_MAX_ADD_RANGE = new Vector2(0.1f, 0.2f);
+        public readonly Vector2 DIRT_TOP_MIN_RANGE = new Vector2(0.45f, 0.6f);
+        public readonly Vector2 DIRT_TOP_MAX_ADD_RANGE = new Vector2(0.12f, 0.25f);
 
         //Диапазон нижней границы почвы
-        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.4f, 0.6f);
+        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.2f, 0.4f);
 
         //Диапазон нижней границы камня
-        public readonly Vector2 STONE_BOTTOM_RANGE = new Vector2(0.2f, 0.35f);
-
-        //Диапазон нижней границы каменой почвы
-        public readonly Vector2 VOLCANICDIRT_BOTTOM_RANGE = new Vector2(0.1f, 0.25f);
-
-        //Диапазон нижней границы каменой почвы
-        public readonly Vector2 VOLCANICSTONE_BOTTOM_RANGE = new Vector2(0.05f, 0.15f);
-
-
+        public readonly Vector2 STONE_BOTTOM_RANGE = new Vector2(0.1f, 0.25f);
 
         //Точка начала роста травы и деревьев
-        public const float MIN_HEIGHT_GRASSPOINT = 0.45f;
+        public const float MIN_HEIGHT_GRASSPOINT = 0.4f;
 
-
-        //Модификаторы
-        [Space()]
-        public int maxWaterInNoise = 25;                                        //Водоемы       30
-        public int minCaveInNoise = 75;                                         //Пещеры        68
-        public Vector2Int sandInTopInNoise = new Vector2Int(26, 35);            //Песок на поверхности по алгоритму воды
-        public Vector2Int sandInNoise = new Vector2Int(71, 74);                 //Песок по всей карте (примерно около пещер по диапазону шума)
-        public Vector2Int sandWithSandInNoise = new Vector2Int(27, 31);         //Песок, если соседние клетки песок/песчаник
-        public Vector2Int stoneInNoise = new Vector2Int(60, 70);                //Песок, если соседние клетки песок/песчаник
-
-
-
-        private WaterController waterController;
-
-
+        
 
         [Header("Settings")]
         [SerializeField] private int seed = -1;      //1146381508
@@ -66,19 +41,6 @@ namespace ProjectDwarf.WorldGeneration
         [Space()]
         [SerializeField] private WorldNoiseGenerator worldNoise;
 
-        //Генераторы биомов
-        private DirtBiomeGenerator dirtBiome;
-        private StoneBiomeGenerator stoneBiome;
-        private VolcanicDirtBiomeGenerator volcDirtBiome;
-        private VolcanicStoneBiomeGenerator volcStoneBiome;
-
-        private CaveBiomeGenerator caveBiome;
-        private WaterBiomeGenerator waterBiome;
-        private SandBiomeGenerator sandBiome;
-
-        private BorderBiomeGenerator borderBiome;
-
-
 
         private void Start()
         {
@@ -86,6 +48,7 @@ namespace ProjectDwarf.WorldGeneration
             tilePreset.Initialize();
 
             Generate(seed);
+            GenerationTest01();
         }
 
 
@@ -94,21 +57,21 @@ namespace ProjectDwarf.WorldGeneration
             worldNoise?.OnDrawGizmos();
         }
 
-        //TODO TEST
         [ContextMenu("ReGeneration")]
         private void ReGeneration()
         {
             Generate(seed);
+            GenerationTest01();
         }
 
 
-        //public void GenerationTest01()
-        //{
-        //    tilemap.SetTile(new Vector3Int(0, 0, 0), tilePreset.GetTile(EnumResources.Water));
-        //    tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, 0, 0), tilePreset.GetTile(EnumResources.Water));
-        //    tilemap.SetTile(new Vector3Int(0, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
-        //    tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
-        //}
+        public void GenerationTest01()
+        {
+            tilemap.SetTile(new Vector3Int(0, 0, 0), tilePreset.GetTile(EnumResources.Water));
+            tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, 0, 0), tilePreset.GetTile(EnumResources.Water));
+            tilemap.SetTile(new Vector3Int(0, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
+            tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
+        }
 
         public void Generate(int _seed)
         {
@@ -131,19 +94,11 @@ namespace ProjectDwarf.WorldGeneration
             worldNoise = new WorldNoiseGenerator(newNoiseData);
 
             //Генерация верхнего уровня почвы
-            dirtBiome = new DirtBiomeGenerator(world);
-            int[] arrDirtTop = dirtBiome.GenerateDirtTopLayer(DIRT_TOP_MIN_RANGE, DIRT_TOP_MAX_ADD_RANGE);
+            int[] arrDirtTop = GetDirtTopLayer();
             //Генерация нижнего уровня почвы
-            int[] arrDirtBottom = dirtBiome.GenerateDirtBottomLayer(DIRT_BOTTOM_RANGE);
+            int[] arrDirtBottom = GetDirtBottomLayer();
             //Генерация нижнего слоя камня
-            stoneBiome = new StoneBiomeGenerator(world, worldNoise);
-            int[] arrStoneBottom = stoneBiome.GenerateStoneBottomLayer(STONE_BOTTOM_RANGE);
-            //Генерация нижнего слоя каменистой почвы
-            volcDirtBiome = new VolcanicDirtBiomeGenerator(world);
-            int[] arrVolcanicDirtBottom = volcDirtBiome.GenerateVolcanicDirtBottomLayer(VOLCANICDIRT_BOTTOM_RANGE);
-            //Генерация нижнего слоя каменистого камня
-            volcStoneBiome = new VolcanicStoneBiomeGenerator(world);
-            int[] arrVolcanicStoneBottom = volcStoneBiome.GenerateVolcanicStoneBottomLayer(VOLCANICSTONE_BOTTOM_RANGE);
+            int[] arrStoneBottom = GetStoneBottomLayer();
 
             //Собираем карту
             for (int x = 0; x < WORLD_WIDTH; x++)
@@ -162,66 +117,71 @@ namespace ProjectDwarf.WorldGeneration
                         break;
                     else
                         world[x, stoneY] = (int)EnumResources.Stone;
-                }
-
-                //VolcanicDirt
-                minY = arrVolcanicDirtBottom[x];
-                for (int volcanicDirtY = minY; volcanicDirtY < WORLD_HEIGHT; volcanicDirtY++)
-                {
-                    if (world[x, volcanicDirtY] > 0)
-                        break;
-                    else
-                        world[x, volcanicDirtY] = (int)EnumResources.VolcanicDirt;
-                }
-
-                //VolcanicStone
-                minY = arrVolcanicStoneBottom[x];
-                for (int volcanicDirtY = minY; volcanicDirtY < WORLD_HEIGHT; volcanicDirtY++)
-                {
-                    if (world[x, volcanicDirtY] > 0)
-                        break;
-                    else
-                        world[x, volcanicDirtY] = (int)EnumResources.VolcanicStone;
-                }
+                }                
             }
 
-            //Модификаторы
-
-            //Пещеры
-            caveBiome = new CaveBiomeGenerator(world, worldNoise);
-            world = caveBiome.GenerateCaves(world, minCaveInNoise);            
-
-            //Вода на поверхности
-            waterBiome = new WaterBiomeGenerator(world, worldNoise);
-            world = waterBiome.GenerateWaterInTop(world, maxWaterInNoise);
-
-            //Песок
-            //На поверхности
-            sandBiome = new SandBiomeGenerator(world, worldNoise);
-            world = sandBiome.GenerateSandInTop(world, sandInTopInNoise, (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.x));
-            //Везде по шуму
-            world = sandBiome.GenerateSandInNoise(world, sandInNoise);
-            //Везде, где рядом песок
-            world = sandBiome.GenerateSandWithSandInNoise(world, sandWithSandInNoise);
-
-            //Земля/камень шумом
-            world = stoneBiome.GenerateStoneNoise(world, stoneInNoise);
-
-            //Границы мира
-            borderBiome = new BorderBiomeGenerator(world);
-            world = borderBiome.GenerateBorder(world);
-
-
-
             ShowMap(world);
-
-            waterController = new WaterController(world);
-            StopAllCoroutines();
-            StartCoroutine(WaterRoutine());
         }
         
 
-        //TODO: TEST - после теста оставить только функционал генерации. Отображение убрать!
+        private int[] GetDirtTopLayer()
+        {
+            int groundLevelMin = StaticRandom.Next((int)(WORLD_HEIGHT * DIRT_TOP_MIN_RANGE.x), (int)(WORLD_HEIGHT * DIRT_TOP_MIN_RANGE.y));
+            int groundLevelMax = groundLevelMin + StaticRandom.Next((int)(WORLD_HEIGHT * DIRT_TOP_MAX_ADD_RANGE.x), (int)(WORLD_HEIGHT * DIRT_TOP_MAX_ADD_RANGE.y));
+
+            int[] arr = new int[WORLD_WIDTH];
+            for (int i = 0; i < WORLD_WIDTH; i++)
+            {
+                int dir = StaticRandom.Next(0, 2) == 1 ? 1 : -1;
+
+                if (i > 0)
+                {
+                    if (arr[i - 1] + dir < groundLevelMin || arr[i - 1] + dir > groundLevelMax)
+                        dir = -dir;
+
+                    arr[i] = arr[i - 1] + dir;
+                }
+                else
+                {
+                    arr[i] = StaticRandom.Next(groundLevelMin, groundLevelMax);
+                }
+            }
+
+            arr = GetSmoothing(arr, 4);
+
+            return arr;
+        }
+
+        private int[] GetDirtBottomLayer()
+        {
+            int[] arr = new int[WORLD_WIDTH];
+            for (int i = 0; i < WORLD_WIDTH; i++)
+            {
+                var minValue = (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.x);
+                var maxValue = (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.y);
+                arr[i] = StaticRandom.Next(minValue, maxValue);
+            }
+
+            arr = GetSmoothing(arr, 3);
+
+            return arr;
+        }
+        
+        private int[] GetStoneBottomLayer()
+        {
+            int[] arr = new int[WORLD_WIDTH];
+            for (int i = 0; i < WORLD_WIDTH; i++)
+            {
+                var minValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.x);
+                var maxValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.y);
+                arr[i] = StaticRandom.Next(minValue, maxValue);
+            }
+
+            arr = GetSmoothing(arr, 1);
+
+            return arr;
+        }
+
         private void ShowMap(int[,] _map)
         {
             tilemap.ClearAllTiles();
@@ -231,17 +191,34 @@ namespace ProjectDwarf.WorldGeneration
                     tilemap.SetTile(new Vector3Int(x, y, 0), tilePreset.GetTile((EnumResources)_map[x, y]));
         }
 
-
-        //TODO: удалить после теста
-        private IEnumerator WaterRoutine()
+        private int[] GetSmoothing(int[] _origin, int _avrLenght)
         {
-            for ( ; ; )
-            { 
-                yield return new WaitForSeconds(1.0f);
-                world = waterController.GetTickWaterSimulate(world);
+            for (int i = 1; i < _origin.Length - 1; i++)
+            {
+                float sum = _origin[i];
+                int count = 1;
+                for (int k = 1; k <= _avrLenght; k++)
+                {
+                    int i1 = i - k;
+                    int i2 = i + k;
 
-                ShowMap(world);
-            }            
-        }
+                    if (i1 > 0)
+                    {
+                        sum += _origin[i1];
+                        count++;
+                    }
+
+                    if (i2 < _origin.Length)
+                    {
+                        sum += _origin[i2];
+                        count++;
+                    }
+                }
+
+                _origin[i] = (int)(sum / count);
+            }
+
+            return _origin;
+        }        
     }
 }

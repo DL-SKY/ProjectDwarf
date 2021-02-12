@@ -10,7 +10,7 @@ namespace ProjectDwarf.WorldGeneration
         private static System.Random random;
 
 
-        public static void Initialize(int _seed = -1)
+        public static void Initialize(int _seed = 0)
         {
             Seed = _seed < 0 ? (int)DateTime.Now.Ticks : _seed;
             random = new System.Random(Seed);
