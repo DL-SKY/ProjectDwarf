@@ -1,4 +1,5 @@
 ﻿using ProjectDwarf.Enums;
+using ProjectDwarf.WorldGeneration.Biomes;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -19,10 +20,17 @@ namespace ProjectDwarf.WorldGeneration
         public readonly Vector2 DIRT_TOP_MAX_ADD_RANGE = new Vector2(0.1f, 0.2f);
 
         //Диапазон нижней границы почвы
-        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.4f, 0.55f);
+        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.4f, 0.6f);
 
         //Диапазон нижней границы камня
         public readonly Vector2 STONE_BOTTOM_RANGE = new Vector2(0.2f, 0.35f);
+
+        //Диапазон нижней границы каменой почвы
+        public readonly Vector2 VOLCANICDIRT_BOTTOM_RANGE = new Vector2(0.1f, 0.25f);
+
+        //Диапазон нижней границы каменой почвы
+        public readonly Vector2 VOLCANICSTONE_BOTTOM_RANGE = new Vector2(0.05f, 0.15f);
+
 
 
         //Точка начала роста травы и деревьев
@@ -30,8 +38,9 @@ namespace ProjectDwarf.WorldGeneration
 
 
         //Модификаторы
-        public int maxWaterInNoise = 30;                //Водоемы
-        public int minCaveInNoise = 68;                 //Пещеры
+        [Space()]
+        public int maxWaterInNoise = 25;                //Водоемы       30
+        public int minCaveInNoise = 75;                 //Пещеры        68
         
 
         
@@ -47,6 +56,9 @@ namespace ProjectDwarf.WorldGeneration
 
         [Space()]
         [SerializeField] private WorldNoiseGenerator worldNoise;
+
+        //Генераторы биомов
+        private WaterBiomeGenerator waterBiome;
 
 
         private void Start()
@@ -106,6 +118,10 @@ namespace ProjectDwarf.WorldGeneration
             int[] arrDirtBottom = GetDirtBottomLayer();
             //Генерация нижнего слоя камня
             int[] arrStoneBottom = GetStoneBottomLayer();
+            //Генерация нижнего слоя каменистой почвы
+            int[] arrVolcanicDirtBottom = GetVolcanicDirtBottomLayer();
+            //Генерация нижнего слоя каменистой почвы
+            int[] arrVolcanicStoneBottom = GetVolcanicStoneBottomLayer();
 
             //Собираем карту
             for (int x = 0; x < WORLD_WIDTH; x++)
@@ -124,18 +140,30 @@ namespace ProjectDwarf.WorldGeneration
                         break;
                     else
                         world[x, stoneY] = (int)EnumResources.Stone;
-                }                
+                }
+
+                //VolcanicDirt
+                minY = arrVolcanicDirtBottom[x];
+                for (int volcanicDirtY = minY; volcanicDirtY < WORLD_HEIGHT; volcanicDirtY++)
+                {
+                    if (world[x, volcanicDirtY] > 0)
+                        break;
+                    else
+                        world[x, volcanicDirtY] = (int)EnumResources.VolcanicDirt;
+                }
+
+                //VolcanicStone
+                minY = arrVolcanicStoneBottom[x];
+                for (int volcanicDirtY = minY; volcanicDirtY < WORLD_HEIGHT; volcanicDirtY++)
+                {
+                    if (world[x, volcanicDirtY] > 0)
+                        break;
+                    else
+                        world[x, volcanicDirtY] = (int)EnumResources.VolcanicStone;
+                }
             }
 
             //Модификаторы
-
-            //Вода на поверхности
-            for (int x = 0; x < WORLD_WIDTH; x++)
-                for (int y = 0; y < WORLD_HEIGHT; y++)
-                {
-                    if (worldNoise.GetNoiseInt100(x, y) <= maxWaterInNoise && CheckWaterZone(x, y))
-                        world[x, y] = (int)EnumResources.Water;
-                }
 
             //Пещеры
             for (int x = 0; x < WORLD_WIDTH; x++)
@@ -145,126 +173,15 @@ namespace ProjectDwarf.WorldGeneration
                         world[x, y] = (int)EnumResources.Void;
                 }
 
+            //Вода на поверхности
+            waterBiome = new WaterBiomeGenerator();
+            world = waterBiome.GenerateWaterInTop(world, maxWaterInNoise, worldNoise);
+            
+
 
 
             ShowMap(world);
         }
-
-
-        private bool CheckWaterZone(int _x, int _y)
-        {
-            var checkMatrix = new int[WORLD_WIDTH, WORLD_HEIGHT];
-            var isVoidUp = CheckVoidUpWaterZone(_x, _y, checkMatrix);
-
-            checkMatrix = new int[WORLD_WIDTH, WORLD_HEIGHT];
-            var isWaterOrDirt = CheckWaterOrDirtWaterZone(_x, _y, checkMatrix);
-
-            return isWaterOrDirt && isVoidUp;
-        }
-
-        private bool CheckVoidUpWaterZone(int _x, int _y, int[,] _checkMatrix)
-        {
-            _checkMatrix[_x, _y] = 1;
-
-            if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1 && world[_x, _y + 1] == (int)EnumResources.Void)
-            {
-                return true;
-            }
-            else
-            {
-                //вверх
-                if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1
-                    && worldNoise.GetNoiseInt100(_x, _y + 1) <= maxWaterInNoise
-                    && _checkMatrix[_x, _y + 1] < 1)
-                {
-                    if (CheckVoidUpWaterZone(_x, _y + 1, _checkMatrix))
-                        return true;
-                }
-
-                //направо
-                if (world.GetLength(0) > _x + 1 && world.GetLength(1) > _y
-                    && worldNoise.GetNoiseInt100(_x + 1, _y) <= maxWaterInNoise
-                    && _checkMatrix[_x + 1, _y] < 1)
-                {
-                    if (CheckVoidUpWaterZone(_x + 1, _y, _checkMatrix))
-                        return true;
-                }
-
-                //вниз
-                if (world.GetLength(0) > _x && _y - 1 >= 0
-                    && worldNoise.GetNoiseInt100(_x, _y - 1) <= maxWaterInNoise
-                    && _checkMatrix[_x, _y - 1] < 1)
-                {
-                    if (CheckVoidUpWaterZone(_x, _y - 1, _checkMatrix))
-                        return true;
-                }
-
-                //налево
-                if (_x - 1 >= 0 && world.GetLength(1) > _y
-                    && worldNoise.GetNoiseInt100(_x - 1, _y) <= maxWaterInNoise
-                    && _checkMatrix[_x - 1, _y] < 1)
-                {
-                    if (CheckVoidUpWaterZone(_x - 1, _y, _checkMatrix))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool CheckWaterOrDirtWaterZone(int _x, int _y, int[,] _checkMatrix)
-        {
-            _checkMatrix[_x, _y] = 1;
-
-            //вверх
-            if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1)
-            {
-                if (world[_x, _y + 1] == (int)EnumResources.Dirt || world[_x, _y + 1] == (int)EnumResources.Water)
-                    return true;
-                else if (worldNoise.GetNoiseInt100(_x, _y + 1) <= maxWaterInNoise
-                    && _checkMatrix[_x, _y + 1] < 1)
-                    if (CheckWaterOrDirtWaterZone(_x, _y + 1, _checkMatrix))
-                        return true;
-            }
-
-            //направо
-            if (world.GetLength(0) > _x + 1 && world.GetLength(1) > _y)
-            { 
-                if (world[_x + 1, _y] == (int)EnumResources.Dirt || world[_x + 1, _y] == (int)EnumResources.Water)
-                    return true;
-                else if (worldNoise.GetNoiseInt100(_x + 1, _y) <= maxWaterInNoise
-                    && _checkMatrix[_x + 1, _y] < 1)
-                    if (CheckWaterOrDirtWaterZone(_x + 1, _y, _checkMatrix))
-                        return true;
-            }
-
-            //вниз
-            if (world.GetLength(0) > _x && _y - 1 >= 0)
-            {
-                if (world[_x, _y - 1] == (int)EnumResources.Dirt || world[_x, _y - 1] == (int)EnumResources.Water)
-                    return true;
-                else if (worldNoise.GetNoiseInt100(_x, _y - 1) <= maxWaterInNoise
-                    && _checkMatrix[_x, _y - 1] < 1)
-                    if (CheckWaterOrDirtWaterZone(_x, _y - 1, _checkMatrix))
-                        return true;
-            }
-
-            //налево
-            if (_x - 1 >= 0 && world.GetLength(1) > _y)
-            {
-                if (world[_x - 1, _y] == (int)EnumResources.Dirt || world[_x - 1, _y] == (int)EnumResources.Water)
-                    return true;
-                else if (worldNoise.GetNoiseInt100(_x - 1, _y) <= maxWaterInNoise
-                    && _checkMatrix[_x - 1, _y] < 1)
-                    if (CheckWaterOrDirtWaterZone(_x - 1, _y, _checkMatrix))
-                        return true;
-            }
-
-            return false;
-        }
-
-
-
 
 
 
@@ -318,6 +235,36 @@ namespace ProjectDwarf.WorldGeneration
             {
                 var minValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.x);
                 var maxValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.y);
+                arr[i] = StaticRandom.Next(minValue, maxValue);
+            }
+
+            arr = GetSmoothing(arr, 1);
+
+            return arr;
+        }
+
+        private int[] GetVolcanicDirtBottomLayer()
+        {
+            int[] arr = new int[WORLD_WIDTH];
+            for (int i = 0; i < WORLD_WIDTH; i++)
+            {
+                var minValue = (int)(WORLD_HEIGHT * VOLCANICDIRT_BOTTOM_RANGE.x);
+                var maxValue = (int)(WORLD_HEIGHT * VOLCANICDIRT_BOTTOM_RANGE.y);
+                arr[i] = StaticRandom.Next(minValue, maxValue);
+            }
+
+            arr = GetSmoothing(arr, 1);
+
+            return arr;
+        }
+
+        private int[] GetVolcanicStoneBottomLayer()
+        {
+            int[] arr = new int[WORLD_WIDTH];
+            for (int i = 0; i < WORLD_WIDTH; i++)
+            {
+                var minValue = (int)(WORLD_HEIGHT * VOLCANICSTONE_BOTTOM_RANGE.x);
+                var maxValue = (int)(WORLD_HEIGHT * VOLCANICSTONE_BOTTOM_RANGE.y);
                 arr[i] = StaticRandom.Next(minValue, maxValue);
             }
 

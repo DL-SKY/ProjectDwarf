@@ -181,9 +181,9 @@ MonoBehaviour:
   NOISE_SCALE: 18
   minNoiseVisible: 0
   maxNoiseVisible: 30
-  maxWaterInNoise: 30
-  minCaveInNoise: 68
-  seed: -1
+  maxWaterInNoise: 25
+  minCaveInNoise: 75
+  seed: 54897
   tilePreset: {fileID: 11400000, guid: 25c7d3a747b022645906eb39a74e5c7d, type: 2}
   tilemap: {fileID: 2047308479}
   worldNoise:

@@ -13,9 +13,21 @@ MonoBehaviour:
   m_Name: TilePreset_00
   m_EditorClassIdentifier: 
   tiles:
-  - key: 2
+  - key: 10
+    value: {fileID: 11400000, guid: 29ffc0e0f017ba746b5fa4f0dcc6bf43, type: 2}
+  - key: 20
+    value: {fileID: 11400000, guid: c316719d2d5f91243b5a5706c7393009, type: 2}
+  - key: 100
+    value: {fileID: 11400000, guid: c2ca44b974b8d6f45afb06dc45e04240, type: 2}
+  - key: 110
     value: {fileID: 11400000, guid: 9a1a388c470aae34797dfd7e28052dab, type: 2}
-  - key: 3
-    value: {fileID: 11400000, guid: 87518f102c5e8184caecf9d330c3f13e, type: 2}
-  - key: 1
-    value: {fileID: 11400000, guid: 6a4437f285ce1f5429700de1dcd7caf8, type: 2}
+  - key: 200
+    value: {fileID: 11400000, guid: 5d97d85fc2b232c43ad9f5224ae63a76, type: 2}
+  - key: 210
+    value: {fileID: 11400000, guid: 63b18544533a0684b9001d1531bd0b0e, type: 2}
+  - key: 300
+    value: {fileID: 11400000, guid: 7a6c6a780ee62ad4cba06b00d1dad232, type: 2}
+  - key: 310
+    value: {fileID: 11400000, guid: 5c7a1de440e2ed240b50bf7876c37ad9, type: 2}
+  - key: 10000
+    value: {fileID: 11400000, guid: fab949a9a303c8640b71db170e4c0519, type: 2}
