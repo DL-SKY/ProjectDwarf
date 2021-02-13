@@ -61,10 +61,10 @@ namespace ProjectDwarf.WorldGeneration
             IsInit = true;
         }
 
-        public float GetNoise(int x, int y)
+        public float GetNoise(int _x, int _y)
         {
-            var noiseX = (float)x / data.width * data.noiseScale + data.noiseOffsetX;
-            var noiseY = (float)y / data.height * data.noiseScale + data.noiseOffsetY;
+            var noiseX = (float)_x / data.width * data.noiseScale + data.noiseOffsetX;
+            var noiseY = (float)_y / data.height * data.noiseScale + data.noiseOffsetY;
             return Mathf.PerlinNoise(noiseX, noiseY);
         }
 

@@ -15,17 +15,24 @@ namespace ProjectDwarf.WorldGeneration
         public int maxNoiseVisible = 75;
 
         //Диапазон верхней границы почвы
-        public readonly Vector2 DIRT_TOP_MIN_RANGE = new Vector2(0.45f, 0.6f);
-        public readonly Vector2 DIRT_TOP_MAX_ADD_RANGE = new Vector2(0.12f, 0.25f);
+        public readonly Vector2 DIRT_TOP_MIN_RANGE = new Vector2(0.6f, 0.7f);
+        public readonly Vector2 DIRT_TOP_MAX_ADD_RANGE = new Vector2(0.1f, 0.2f);
 
         //Диапазон нижней границы почвы
-        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.2f, 0.4f);
+        public readonly Vector2 DIRT_BOTTOM_RANGE = new Vector2(0.4f, 0.55f);
 
         //Диапазон нижней границы камня
-        public readonly Vector2 STONE_BOTTOM_RANGE = new Vector2(0.1f, 0.25f);
+        public readonly Vector2 STONE_BOTTOM_RANGE = new Vector2(0.2f, 0.35f);
+
 
         //Точка начала роста травы и деревьев
-        public const float MIN_HEIGHT_GRASSPOINT = 0.4f;
+        public const float MIN_HEIGHT_GRASSPOINT = 0.45f;
+
+
+        //Модификаторы
+        public int maxWaterInNoise = 30;                //Водоемы
+        public int minCaveInNoise = 68;                 //Пещеры
+        
 
         
 
@@ -120,9 +127,146 @@ namespace ProjectDwarf.WorldGeneration
                 }                
             }
 
+            //Модификаторы
+
+            //Вода на поверхности
+            for (int x = 0; x < WORLD_WIDTH; x++)
+                for (int y = 0; y < WORLD_HEIGHT; y++)
+                {
+                    if (worldNoise.GetNoiseInt100(x, y) <= maxWaterInNoise && CheckWaterZone(x, y))
+                        world[x, y] = (int)EnumResources.Water;
+                }
+
+            //Пещеры
+            for (int x = 0; x < WORLD_WIDTH; x++)
+                for (int y = 0; y < WORLD_HEIGHT; y++)
+                {
+                    if (worldNoise.GetNoiseInt100(x, y) >= minCaveInNoise)
+                        world[x, y] = (int)EnumResources.Void;
+                }
+
+
+
             ShowMap(world);
         }
-        
+
+
+        private bool CheckWaterZone(int _x, int _y)
+        {
+            var checkMatrix = new int[WORLD_WIDTH, WORLD_HEIGHT];
+            var isVoidUp = CheckVoidUpWaterZone(_x, _y, checkMatrix);
+
+            checkMatrix = new int[WORLD_WIDTH, WORLD_HEIGHT];
+            var isWaterOrDirt = CheckWaterOrDirtWaterZone(_x, _y, checkMatrix);
+
+            return isWaterOrDirt && isVoidUp;
+        }
+
+        private bool CheckVoidUpWaterZone(int _x, int _y, int[,] _checkMatrix)
+        {
+            _checkMatrix[_x, _y] = 1;
+
+            if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1 && world[_x, _y + 1] == (int)EnumResources.Void)
+            {
+                return true;
+            }
+            else
+            {
+                //вверх
+                if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1
+                    && worldNoise.GetNoiseInt100(_x, _y + 1) <= maxWaterInNoise
+                    && _checkMatrix[_x, _y + 1] < 1)
+                {
+                    if (CheckVoidUpWaterZone(_x, _y + 1, _checkMatrix))
+                        return true;
+                }
+
+                //направо
+                if (world.GetLength(0) > _x + 1 && world.GetLength(1) > _y
+                    && worldNoise.GetNoiseInt100(_x + 1, _y) <= maxWaterInNoise
+                    && _checkMatrix[_x + 1, _y] < 1)
+                {
+                    if (CheckVoidUpWaterZone(_x + 1, _y, _checkMatrix))
+                        return true;
+                }
+
+                //вниз
+                if (world.GetLength(0) > _x && _y - 1 >= 0
+                    && worldNoise.GetNoiseInt100(_x, _y - 1) <= maxWaterInNoise
+                    && _checkMatrix[_x, _y - 1] < 1)
+                {
+                    if (CheckVoidUpWaterZone(_x, _y - 1, _checkMatrix))
+                        return true;
+                }
+
+                //налево
+                if (_x - 1 >= 0 && world.GetLength(1) > _y
+                    && worldNoise.GetNoiseInt100(_x - 1, _y) <= maxWaterInNoise
+                    && _checkMatrix[_x - 1, _y] < 1)
+                {
+                    if (CheckVoidUpWaterZone(_x - 1, _y, _checkMatrix))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool CheckWaterOrDirtWaterZone(int _x, int _y, int[,] _checkMatrix)
+        {
+            _checkMatrix[_x, _y] = 1;
+
+            //вверх
+            if (world.GetLength(0) > _x && world.GetLength(1) > _y + 1)
+            {
+                if (world[_x, _y + 1] == (int)EnumResources.Dirt || world[_x, _y + 1] == (int)EnumResources.Water)
+                    return true;
+                else if (worldNoise.GetNoiseInt100(_x, _y + 1) <= maxWaterInNoise
+                    && _checkMatrix[_x, _y + 1] < 1)
+                    if (CheckWaterOrDirtWaterZone(_x, _y + 1, _checkMatrix))
+                        return true;
+            }
+
+            //направо
+            if (world.GetLength(0) > _x + 1 && world.GetLength(1) > _y)
+            { 
+                if (world[_x + 1, _y] == (int)EnumResources.Dirt || world[_x + 1, _y] == (int)EnumResources.Water)
+                    return true;
+                else if (worldNoise.GetNoiseInt100(_x + 1, _y) <= maxWaterInNoise
+                    && _checkMatrix[_x + 1, _y] < 1)
+                    if (CheckWaterOrDirtWaterZone(_x + 1, _y, _checkMatrix))
+                        return true;
+            }
+
+            //вниз
+            if (world.GetLength(0) > _x && _y - 1 >= 0)
+            {
+                if (world[_x, _y - 1] == (int)EnumResources.Dirt || world[_x, _y - 1] == (int)EnumResources.Water)
+                    return true;
+                else if (worldNoise.GetNoiseInt100(_x, _y - 1) <= maxWaterInNoise
+                    && _checkMatrix[_x, _y - 1] < 1)
+                    if (CheckWaterOrDirtWaterZone(_x, _y - 1, _checkMatrix))
+                        return true;
+            }
+
+            //налево
+            if (_x - 1 >= 0 && world.GetLength(1) > _y)
+            {
+                if (world[_x - 1, _y] == (int)EnumResources.Dirt || world[_x - 1, _y] == (int)EnumResources.Water)
+                    return true;
+                else if (worldNoise.GetNoiseInt100(_x - 1, _y) <= maxWaterInNoise
+                    && _checkMatrix[_x - 1, _y] < 1)
+                    if (CheckWaterOrDirtWaterZone(_x - 1, _y, _checkMatrix))
+                        return true;
+            }
+
+            return false;
+        }
+
+
+
+
+
 
         private int[] GetDirtTopLayer()
         {
