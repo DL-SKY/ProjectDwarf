@@ -6,6 +6,7 @@
 
 
         Water = 10,
+
         Lava = 20,
 
         Dirt = 100,

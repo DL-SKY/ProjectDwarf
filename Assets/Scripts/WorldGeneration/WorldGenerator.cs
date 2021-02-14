@@ -58,7 +58,14 @@ namespace ProjectDwarf.WorldGeneration
         [SerializeField] private WorldNoiseGenerator worldNoise;
 
         //Генераторы биомов
+        private DirtBiomeGenerator dirtBiome;
+        private StoneBiomeGenerator stoneBiome;
+        private VolcanicDirtBiomeGenerator volcDirtBiome;
+        private VolcanicStoneBiomeGenerator volcStoneBiome;
+
+        private CaveBiomeGenerator caveBiome;
         private WaterBiomeGenerator waterBiome;
+        private SandBiomeGenerator sandBiome;
 
 
         private void Start()
@@ -76,6 +83,7 @@ namespace ProjectDwarf.WorldGeneration
             worldNoise?.OnDrawGizmos();
         }
 
+        //TODO TEST
         [ContextMenu("ReGeneration")]
         private void ReGeneration()
         {
@@ -113,15 +121,19 @@ namespace ProjectDwarf.WorldGeneration
             worldNoise = new WorldNoiseGenerator(newNoiseData);
 
             //Генерация верхнего уровня почвы
-            int[] arrDirtTop = GetDirtTopLayer();
+            dirtBiome = new DirtBiomeGenerator(world);
+            int[] arrDirtTop = dirtBiome.GenerateDirtTopLayer(DIRT_TOP_MIN_RANGE, DIRT_TOP_MAX_ADD_RANGE);
             //Генерация нижнего уровня почвы
-            int[] arrDirtBottom = GetDirtBottomLayer();
+            int[] arrDirtBottom = dirtBiome.GenerateDirtBottomLayer(DIRT_BOTTOM_RANGE);
             //Генерация нижнего слоя камня
-            int[] arrStoneBottom = GetStoneBottomLayer();
+            stoneBiome = new StoneBiomeGenerator(world);
+            int[] arrStoneBottom = stoneBiome.GenerateStoneBottomLayer(STONE_BOTTOM_RANGE);
             //Генерация нижнего слоя каменистой почвы
-            int[] arrVolcanicDirtBottom = GetVolcanicDirtBottomLayer();
-            //Генерация нижнего слоя каменистой почвы
-            int[] arrVolcanicStoneBottom = GetVolcanicStoneBottomLayer();
+            volcDirtBiome = new VolcanicDirtBiomeGenerator(world);
+            int[] arrVolcanicDirtBottom = volcDirtBiome.GenerateVolcanicDirtBottomLayer(VOLCANICDIRT_BOTTOM_RANGE);
+            //Генерация нижнего слоя каменистого камня
+            volcStoneBiome = new VolcanicStoneBiomeGenerator(world);
+            int[] arrVolcanicStoneBottom = volcStoneBiome.GenerateVolcanicStoneBottomLayer(VOLCANICSTONE_BOTTOM_RANGE);
 
             //Собираем карту
             for (int x = 0; x < WORLD_WIDTH; x++)
@@ -166,112 +178,22 @@ namespace ProjectDwarf.WorldGeneration
             //Модификаторы
 
             //Пещеры
-            for (int x = 0; x < WORLD_WIDTH; x++)
-                for (int y = 0; y < WORLD_HEIGHT; y++)
-                {
-                    if (worldNoise.GetNoiseInt100(x, y) >= minCaveInNoise)
-                        world[x, y] = (int)EnumResources.Void;
-                }
+            caveBiome = new CaveBiomeGenerator(world, worldNoise);
+            world = caveBiome.GenerateCaves(world, minCaveInNoise);            
 
             //Вода на поверхности
-            waterBiome = new WaterBiomeGenerator();
-            world = waterBiome.GenerateWaterInTop(world, maxWaterInNoise, worldNoise);
+            waterBiome = new WaterBiomeGenerator(world, worldNoise);
+            world = waterBiome.GenerateWaterInTop(world, maxWaterInNoise);
+
+            //Песок
+            sandBiome = new SandBiomeGenerator(world);
             
 
 
 
             ShowMap(world);
         }
-
-
-
-        private int[] GetDirtTopLayer()
-        {
-            int groundLevelMin = StaticRandom.Next((int)(WORLD_HEIGHT * DIRT_TOP_MIN_RANGE.x), (int)(WORLD_HEIGHT * DIRT_TOP_MIN_RANGE.y));
-            int groundLevelMax = groundLevelMin + StaticRandom.Next((int)(WORLD_HEIGHT * DIRT_TOP_MAX_ADD_RANGE.x), (int)(WORLD_HEIGHT * DIRT_TOP_MAX_ADD_RANGE.y));
-
-            int[] arr = new int[WORLD_WIDTH];
-            for (int i = 0; i < WORLD_WIDTH; i++)
-            {
-                int dir = StaticRandom.Next(0, 2) == 1 ? 1 : -1;
-
-                if (i > 0)
-                {
-                    if (arr[i - 1] + dir < groundLevelMin || arr[i - 1] + dir > groundLevelMax)
-                        dir = -dir;
-
-                    arr[i] = arr[i - 1] + dir;
-                }
-                else
-                {
-                    arr[i] = StaticRandom.Next(groundLevelMin, groundLevelMax);
-                }
-            }
-
-            arr = GetSmoothing(arr, 4);
-
-            return arr;
-        }
-
-        private int[] GetDirtBottomLayer()
-        {
-            int[] arr = new int[WORLD_WIDTH];
-            for (int i = 0; i < WORLD_WIDTH; i++)
-            {
-                var minValue = (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.x);
-                var maxValue = (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.y);
-                arr[i] = StaticRandom.Next(minValue, maxValue);
-            }
-
-            arr = GetSmoothing(arr, 3);
-
-            return arr;
-        }
         
-        private int[] GetStoneBottomLayer()
-        {
-            int[] arr = new int[WORLD_WIDTH];
-            for (int i = 0; i < WORLD_WIDTH; i++)
-            {
-                var minValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.x);
-                var maxValue = (int)(WORLD_HEIGHT * STONE_BOTTOM_RANGE.y);
-                arr[i] = StaticRandom.Next(minValue, maxValue);
-            }
-
-            arr = GetSmoothing(arr, 1);
-
-            return arr;
-        }
-
-        private int[] GetVolcanicDirtBottomLayer()
-        {
-            int[] arr = new int[WORLD_WIDTH];
-            for (int i = 0; i < WORLD_WIDTH; i++)
-            {
-                var minValue = (int)(WORLD_HEIGHT * VOLCANICDIRT_BOTTOM_RANGE.x);
-                var maxValue = (int)(WORLD_HEIGHT * VOLCANICDIRT_BOTTOM_RANGE.y);
-                arr[i] = StaticRandom.Next(minValue, maxValue);
-            }
-
-            arr = GetSmoothing(arr, 1);
-
-            return arr;
-        }
-
-        private int[] GetVolcanicStoneBottomLayer()
-        {
-            int[] arr = new int[WORLD_WIDTH];
-            for (int i = 0; i < WORLD_WIDTH; i++)
-            {
-                var minValue = (int)(WORLD_HEIGHT * VOLCANICSTONE_BOTTOM_RANGE.x);
-                var maxValue = (int)(WORLD_HEIGHT * VOLCANICSTONE_BOTTOM_RANGE.y);
-                arr[i] = StaticRandom.Next(minValue, maxValue);
-            }
-
-            arr = GetSmoothing(arr, 1);
-
-            return arr;
-        }
 
         private void ShowMap(int[,] _map)
         {
@@ -280,36 +202,6 @@ namespace ProjectDwarf.WorldGeneration
             for (int x = 0; x < _map.GetLength(0); x++)
                 for (int y = 0; y < _map.GetLength(1); y++)
                     tilemap.SetTile(new Vector3Int(x, y, 0), tilePreset.GetTile((EnumResources)_map[x, y]));
-        }
-
-        private int[] GetSmoothing(int[] _origin, int _avrLenght)
-        {
-            for (int i = 1; i < _origin.Length - 1; i++)
-            {
-                float sum = _origin[i];
-                int count = 1;
-                for (int k = 1; k <= _avrLenght; k++)
-                {
-                    int i1 = i - k;
-                    int i2 = i + k;
-
-                    if (i1 > 0)
-                    {
-                        sum += _origin[i1];
-                        count++;
-                    }
-
-                    if (i2 < _origin.Length)
-                    {
-                        sum += _origin[i2];
-                        count++;
-                    }
-                }
-
-                _origin[i] = (int)(sum / count);
-            }
-
-            return _origin;
-        }        
+        }       
     }
 }

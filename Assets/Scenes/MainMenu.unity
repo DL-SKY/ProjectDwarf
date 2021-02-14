@@ -180,7 +180,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NOISE_SCALE: 18
   minNoiseVisible: 0
-  maxNoiseVisible: 30
+  maxNoiseVisible: 25
   maxWaterInNoise: 25
   minCaveInNoise: 75
   seed: 54897

@@ -4,31 +4,36 @@ using UnityEngine;
 
 namespace ProjectDwarf.WorldGeneration.Biomes
 {
-    public class WaterBiomeGenerator
+    public class WaterBiomeGenerator : BiomeGenerator
     {
-        private int worldWidth;
-        private int worldHeight;
-
         private int maxWaterInNoise;
         private WorldNoiseGenerator worldNoise;
 
 
-        public int[,] GenerateWaterInTop(int[,] _world, int _maxWaterInNoise, WorldNoiseGenerator _worldNoise)
+        public WaterBiomeGenerator(int[,] _world, WorldNoiseGenerator _worldNoise) : base(_world)
         {
-            var start = DateTime.Now;
-
-            worldWidth = _world.GetLength(0);
-            worldHeight = _world.GetLength(1);
-
-            maxWaterInNoise = _maxWaterInNoise;
             worldNoise = _worldNoise;
+        }
+
+
+        public int[,] GenerateWaterInTop(int[,] _world, int _maxWaterInNoise)
+        {
+            maxWaterInNoise = _maxWaterInNoise;            
 
             for (int x = 0; x < worldWidth; x++)
                 for (int y = 0; y < worldHeight; y++)
-                    if (_worldNoise.GetNoiseInt100(x, y) <= _maxWaterInNoise && CheckWaterZoneInDirt(_world, x, y))
-                        _world[x, y] = (int)EnumResources.Water;
+                    if (worldNoise.GetNoiseInt100(x, y) <= maxWaterInNoise)
+                    {
+                        var isWater = false;
 
-            UnityEngine.Debug.Log("Water gen: " + (DateTime.Now - start).TotalMilliseconds);
+                        if (CheckWaterZoneInDirt(_world, x, y))                         //Вода на поверхности
+                            isWater = true;
+                        else if (_world[x, y] == (int)EnumResources.VolcanicDirt)       //Вода глубоко в вулканической почве
+                            isWater = true;
+
+                        if (isWater)
+                            _world[x, y] = (int)EnumResources.Water;
+                    }                        
 
             return _world;
         }
