@@ -1,9 +1,14 @@
-﻿namespace ProjectDwarf.WorldGeneration.Biomes
+﻿using System;
+
+namespace ProjectDwarf.WorldGeneration.Biomes
 {
     public abstract class BiomeGenerator
     {
         protected int worldWidth;
         protected int worldHeight;
+
+
+        protected Func<int[,], int, int, bool> CheckValidMatrixElement = (_world, _x, _y) => { return _x >= 0 && _world.GetLength(0) > _x && _y >= 0 && _world.GetLength(1) > _y; };
 
 
         public BiomeGenerator(int[,] _world) 

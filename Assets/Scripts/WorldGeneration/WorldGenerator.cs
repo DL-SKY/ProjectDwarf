@@ -7,8 +7,8 @@ namespace ProjectDwarf.WorldGeneration
 {
     public class WorldGenerator : MonoBehaviour
     {
-        public const int WORLD_WIDTH = 100;        
-        public const int WORLD_HEIGHT = 50;
+        public const int WORLD_WIDTH = 200;        
+        public const int WORLD_HEIGHT = 100;
 
         //Для Шума
         public float NOISE_SCALE = 18.0f;
@@ -39,11 +39,15 @@ namespace ProjectDwarf.WorldGeneration
 
         //Модификаторы
         [Space()]
-        public int maxWaterInNoise = 25;                //Водоемы       30
-        public int minCaveInNoise = 75;                 //Пещеры        68
-        
+        public int maxWaterInNoise = 25;                                        //Водоемы       30
+        public int minCaveInNoise = 75;                                         //Пещеры        68
+        public Vector2Int sandInTopInNoise = new Vector2Int(26, 35);            //Песок на поверхности по алгоритму воды
+        public Vector2Int sandInNoise = new Vector2Int(71, 74);                 //Песок по всей карте (примерно около пещер по диапазону шума)
+        public Vector2Int sandWithSandInNoise = new Vector2Int(27, 31);         //Песок, если соседние клетки песок/песчаник
+        public Vector2Int stoneInNoise = new Vector2Int(60, 70);                //Песок, если соседние клетки песок/песчаник
 
-        
+
+
 
         [Header("Settings")]
         [SerializeField] private int seed = -1;      //1146381508
@@ -67,6 +71,8 @@ namespace ProjectDwarf.WorldGeneration
         private WaterBiomeGenerator waterBiome;
         private SandBiomeGenerator sandBiome;
 
+        private BorderBiomeGenerator borderBiome;
+
 
         private void Start()
         {
@@ -74,7 +80,6 @@ namespace ProjectDwarf.WorldGeneration
             tilePreset.Initialize();
 
             Generate(seed);
-            GenerationTest01();
         }
 
 
@@ -88,17 +93,16 @@ namespace ProjectDwarf.WorldGeneration
         private void ReGeneration()
         {
             Generate(seed);
-            GenerationTest01();
         }
 
 
-        public void GenerationTest01()
-        {
-            tilemap.SetTile(new Vector3Int(0, 0, 0), tilePreset.GetTile(EnumResources.Water));
-            tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, 0, 0), tilePreset.GetTile(EnumResources.Water));
-            tilemap.SetTile(new Vector3Int(0, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
-            tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
-        }
+        //public void GenerationTest01()
+        //{
+        //    tilemap.SetTile(new Vector3Int(0, 0, 0), tilePreset.GetTile(EnumResources.Water));
+        //    tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, 0, 0), tilePreset.GetTile(EnumResources.Water));
+        //    tilemap.SetTile(new Vector3Int(0, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
+        //    tilemap.SetTile(new Vector3Int(WORLD_WIDTH-1, WORLD_HEIGHT-1, 0), tilePreset.GetTile(EnumResources.Water));
+        //}
 
         public void Generate(int _seed)
         {
@@ -126,7 +130,7 @@ namespace ProjectDwarf.WorldGeneration
             //Генерация нижнего уровня почвы
             int[] arrDirtBottom = dirtBiome.GenerateDirtBottomLayer(DIRT_BOTTOM_RANGE);
             //Генерация нижнего слоя камня
-            stoneBiome = new StoneBiomeGenerator(world);
+            stoneBiome = new StoneBiomeGenerator(world, worldNoise);
             int[] arrStoneBottom = stoneBiome.GenerateStoneBottomLayer(STONE_BOTTOM_RANGE);
             //Генерация нижнего слоя каменистой почвы
             volcDirtBiome = new VolcanicDirtBiomeGenerator(world);
@@ -186,8 +190,20 @@ namespace ProjectDwarf.WorldGeneration
             world = waterBiome.GenerateWaterInTop(world, maxWaterInNoise);
 
             //Песок
-            sandBiome = new SandBiomeGenerator(world);
-            
+            //На поверхности
+            sandBiome = new SandBiomeGenerator(world, worldNoise);
+            world = sandBiome.GenerateSandInTop(world, sandInTopInNoise, (int)(WORLD_HEIGHT * DIRT_BOTTOM_RANGE.x));
+            //Везде по шуму
+            world = sandBiome.GenerateSandInNoise(world, sandInNoise);
+            //Везде, где рядом песок
+            world = sandBiome.GenerateSandWithSandInNoise(world, sandWithSandInNoise);
+
+            //Земля/камень шумом
+            world = stoneBiome.GenerateStoneNoise(world, stoneInNoise);
+
+            //Границы мира
+            borderBiome = new BorderBiomeGenerator(world);
+            world = borderBiome.GenerateBorder(world);
 
 
 

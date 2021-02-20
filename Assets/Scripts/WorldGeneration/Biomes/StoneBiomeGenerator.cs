@@ -1,10 +1,17 @@
-﻿using UnityEngine;
+﻿using ProjectDwarf.Enums;
+using UnityEngine;
 
 namespace ProjectDwarf.WorldGeneration.Biomes
 {
     public class StoneBiomeGenerator : BiomeGenerator
     {
-        public StoneBiomeGenerator(int[,] _world) : base(_world) { }
+        private WorldNoiseGenerator worldNoise;
+
+
+        public StoneBiomeGenerator(int[,] _world, WorldNoiseGenerator _worldNoise) : base(_world)
+        {
+            worldNoise = _worldNoise;
+        }
 
 
         public int[] GenerateStoneBottomLayer(Vector2 _bottomRange)
@@ -20,6 +27,30 @@ namespace ProjectDwarf.WorldGeneration.Biomes
             arr = GetSmoothing(arr, 1);
 
             return arr;
+        }
+
+        public int[,] GenerateStoneNoise(int[,] _world, Vector2Int _stoneInNoise)
+        {
+            for (int x = 0; x < worldWidth; x++)
+                for (int y = 0; y < worldHeight; y++)
+                {
+                    var noise = worldNoise.GetNoiseInt100(x, y);
+                    if (noise >= _stoneInNoise.x && noise <= _stoneInNoise.y)
+                    {
+                        var cell = (EnumResources)_world[x, y];
+                        switch (cell)
+                        {
+                            case EnumResources.Dirt:
+                                _world[x, y] = (int)EnumResources.Stone;
+                                break;
+                            case EnumResources.Stone:
+                                _world[x, y] = (int)EnumResources.Dirt;
+                                break;
+                        }
+                    }
+                }
+
+            return _world;
         }
     }
 }

@@ -5,9 +5,10 @@ using UnityEngine;
 namespace ProjectDwarf.WorldGeneration.Biomes
 {
     public class WaterBiomeGenerator : BiomeGenerator
-    {
-        private int maxWaterInNoise;
+    {        
         private WorldNoiseGenerator worldNoise;
+
+        private int maxWaterInNoise;
 
 
         public WaterBiomeGenerator(int[,] _world, WorldNoiseGenerator _worldNoise) : base(_world)
@@ -48,9 +49,7 @@ namespace ProjectDwarf.WorldGeneration.Biomes
             var isWaterOrDirt = CheckWaterOrDirtWaterZone(_world, _x, _y, checkMatrix);
 
             return isWaterOrDirt && isVoidUp;
-        }
-
-        Func<int[,], int, int, bool> CheckValidMatrixElement = (_world, _x, _y) => { return _x >= 0 && _world.GetLength(0) > _x && _y >= 0 && _world.GetLength(1) > _y; };
+        }        
 
         private bool CheckVoidUpWaterZone(int[,] _world, int _x, int _y, int[,] _checkMatrix)
         {

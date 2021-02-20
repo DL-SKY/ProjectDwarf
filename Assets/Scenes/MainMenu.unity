@@ -179,11 +179,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   NOISE_SCALE: 18
-  minNoiseVisible: 0
-  maxNoiseVisible: 25
+  minNoiseVisible: 27
+  maxNoiseVisible: 31
   maxWaterInNoise: 25
   minCaveInNoise: 75
-  seed: 54897
+  sandInTopInNoise: {x: 26, y: 30}
+  sandInNoise: {x: 71, y: 73}
+  sandWithSandInNoise: {x: 27, y: 30}
+  stoneInNoise: {x: 60, y: 70}
+  seed: -1
   tilePreset: {fileID: 11400000, guid: 25c7d3a747b022645906eb39a74e5c7d, type: 2}
   tilemap: {fileID: 2047308479}
   worldNoise:
