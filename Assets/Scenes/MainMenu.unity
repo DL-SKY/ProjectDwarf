@@ -384,9 +384,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   horizontalBorder: {x: 0, y: 100}
-  verticalBorder: {x: 0, y: 100}
-  speed: 10
-  zoomRange: {x: 5, y: 50}
+  verticalBorder: {x: -2, y: 100}
+  speed: 15
+  zoomRange: {x: 5, y: 30}
   zoomSpeed: 1000
   camera: {fileID: 0}
 --- !u!1 &1991348600
