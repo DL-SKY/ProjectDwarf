@@ -7,8 +7,8 @@ namespace ProjectDwarf.WorldGeneration
 {
     public class WorldGenerator : MonoBehaviour
     {
-        public const int WORLD_WIDTH = 200;        
-        public const int WORLD_HEIGHT = 100;
+        public const int WORLD_WIDTH = 100;        
+        public const int WORLD_HEIGHT = 50;
 
         //Для Шума
         public float NOISE_SCALE = 18.0f;
@@ -211,6 +211,7 @@ namespace ProjectDwarf.WorldGeneration
         }
         
 
+        //DOTO: TEST - после теста оставить только функционал генерации. Отображение убрать!
         private void ShowMap(int[,] _map)
         {
             tilemap.ClearAllTiles();
