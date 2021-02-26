@@ -25,6 +25,7 @@ namespace ProjectDwarf.InputSystem.Adapters
         {
             var x = 0.0f;
             var y = 0.0f;
+            var speedBoost = (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) ? 2.0f : 1.0f;
 
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
                 y += 1.0f;
@@ -38,11 +39,11 @@ namespace ProjectDwarf.InputSystem.Adapters
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
                 x += 1.0f;
 
-            camera?.SetDirection(new Vector2(x, y));
+            camera?.SetDirection(new Vector2(x, y) * speedBoost);
 
 
-            var zoomDelta = Input.GetAxis("Mouse ScrollWheel");
-            camera?.SetZoomDelta(zoomDelta);
+            var zoomDelta = -Input.GetAxis("Mouse ScrollWheel");
+            camera?.SetZoomDelta(zoomDelta * speedBoost);
         }
 
 

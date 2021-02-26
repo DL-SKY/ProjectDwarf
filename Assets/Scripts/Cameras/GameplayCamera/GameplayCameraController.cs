@@ -18,16 +18,19 @@ namespace ProjectDwarf.Cameras.GameplayCamera
         [SerializeField] private float zoomSpeed;
 
         [Header("Links")]
-        [SerializeField] private Camera camera;
+        [SerializeField] new private Camera camera;
 
         private Vector2 direction;
         private float zoomDelta;
+        private float baseOffset;
 
 
         private void OnEnable()
         {
             if (camera == null)
                 camera = GetComponent<Camera>();
+
+            baseOffset = camera?.orthographicSize ?? 0.0f;
 
             ComponentLocator.Register(this);
 
@@ -68,8 +71,8 @@ namespace ProjectDwarf.Cameras.GameplayCamera
         private void MoveCamera()
         {
             var newPosition = transform.position + new Vector3(direction.x, direction.y, 0.0f) * speed * Time.deltaTime;
-            newPosition = new Vector3(  Mathf.Clamp(newPosition.x, horizontalBorder.x, horizontalBorder.y),
-                                        Mathf.Clamp(newPosition.y, verticalBorder.x, verticalBorder.y),
+            newPosition = new Vector3(  Mathf.Clamp(newPosition.x, horizontalBorder.x + baseOffset, horizontalBorder.y - baseOffset),
+                                        Mathf.Clamp(newPosition.y, verticalBorder.x + baseOffset, verticalBorder.y),
                                         newPosition.z);
 
             transform.position = newPosition;
@@ -85,7 +88,7 @@ namespace ProjectDwarf.Cameras.GameplayCamera
             var newZoom = camera.orthographicSize + zoomDelta * zoomSpeed * Time.deltaTime;
             newZoom = Mathf.Clamp(newZoom, zoomRange.x, zoomRange.y);
 
-            camera.orthographicSize = newZoom;
+            baseOffset = camera.orthographicSize = newZoom;            
 
             zoomDelta = 0.0f;
         }

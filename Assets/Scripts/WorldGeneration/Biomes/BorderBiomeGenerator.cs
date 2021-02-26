@@ -33,28 +33,19 @@ namespace ProjectDwarf.WorldGeneration.Biomes
 
         private int[,] GenerateFrontier(int[,] _world)
         {
-            var x = 0;
+            var xL = 0;
+            var xR = worldWidth - 1;
             var topY = 0;
-            for (int y = worldHeight - 1; y >= 0; y--)
-            {
-                if (_world[x, y] > 0 && topY <= 0)
-                    topY = y;
-                else if (topY <= 0)
-                    continue;                    
-                    
-                _world[x, y] = (int)EnumResources.FrontierStone;
-            }
 
-            x = worldWidth - 1;
-            topY = 0;
             for (int y = worldHeight - 1; y >= 0; y--)
             {
-                if (_world[x, y] > 0 && topY <= 0)
+                if (_world[xL, y] > 0 && _world[xR, y] > 0 && topY <= 0)
                     topY = y;
                 else if (topY <= 0)
                     continue;
 
-                _world[x, y] = (int)EnumResources.FrontierStone;
+                _world[xL, y] = (int)EnumResources.FrontierStone;
+                _world[xR, y] = (int)EnumResources.FrontierStone;
             }
 
             return _world;
