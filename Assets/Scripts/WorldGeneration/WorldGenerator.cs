@@ -1,5 +1,7 @@
 ﻿using ProjectDwarf.Enums;
 using ProjectDwarf.WorldGeneration.Biomes;
+using ProjectDwarf.WorldGeneration.Controllers;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -48,6 +50,9 @@ namespace ProjectDwarf.WorldGeneration
 
 
 
+        NjordGodOfWater nj;
+
+
 
         [Header("Settings")]
         [SerializeField] private int seed = -1;      //1146381508
@@ -72,6 +77,7 @@ namespace ProjectDwarf.WorldGeneration
         private SandBiomeGenerator sandBiome;
 
         private BorderBiomeGenerator borderBiome;
+
 
 
         private void Start()
@@ -208,6 +214,9 @@ namespace ProjectDwarf.WorldGeneration
 
 
             ShowMap(world);
+
+            nj = new NjordGodOfWater(world);
+            StartCoroutine(NjRoutine());
         }
         
 
@@ -219,6 +228,19 @@ namespace ProjectDwarf.WorldGeneration
             for (int x = 0; x < _map.GetLength(0); x++)
                 for (int y = 0; y < _map.GetLength(1); y++)
                     tilemap.SetTile(new Vector3Int(x, y, 0), tilePreset.GetTile((EnumResources)_map[x, y]));
-        }       
+        }
+
+
+
+        private IEnumerator NjRoutine()
+        {
+            for (; ; )
+            { 
+                yield return new WaitForSeconds(1.0f);
+                world = nj.GetTickWaterSimulate(world);
+
+                ShowMap(world);
+            }            
+        }
     }
 }
