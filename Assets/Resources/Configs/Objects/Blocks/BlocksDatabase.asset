@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c81a6553c6b74de46ac2800ccdb87f91, type: 3}
+  m_Name: BlocksDatabase
+  m_EditorClassIdentifier: 
+  blocks:
+  - block: 0
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 10
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 20
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 100
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 110
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 200
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 210
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 300
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 310
+    maxHitPoints: 0
+    destroyedFromBlocks: 
+  - block: 10000
+    maxHitPoints: 0
+    destroyedFromBlocks: 

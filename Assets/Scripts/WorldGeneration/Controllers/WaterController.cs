@@ -7,7 +7,8 @@ using UnityEngine;
 
 namespace ProjectDwarf.WorldGeneration.Controllers
 {
-    public class NjordGodOfWater
+    //NjordGodOfWater
+    public class WaterController
     {
         private int worldWidth;
         private int worldHeight;
@@ -16,7 +17,7 @@ namespace ProjectDwarf.WorldGeneration.Controllers
         protected Func<int, int, int, int, bool> CheckValidMatrixElement = (_x, _y, _maxX, _maxY) => { return _x >= 0 && _maxX > _x && _y >= 0 && _maxY > _y; };
 
 
-        public NjordGodOfWater(int[,] _world)
+        public WaterController(int[,] _world)
         {
             worldWidth = _world.GetLength(0);
             worldHeight = _world.GetLength(1);

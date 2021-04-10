@@ -50,7 +50,7 @@ namespace ProjectDwarf.WorldGeneration
 
 
 
-        NjordGodOfWater nj;
+        private WaterController waterController;
 
 
 
@@ -215,12 +215,13 @@ namespace ProjectDwarf.WorldGeneration
 
             ShowMap(world);
 
-            nj = new NjordGodOfWater(world);
-            StartCoroutine(NjRoutine());
+            waterController = new WaterController(world);
+            StopAllCoroutines();
+            StartCoroutine(WaterRoutine());
         }
         
 
-        //DOTO: TEST - после теста оставить только функционал генерации. Отображение убрать!
+        //TODO: TEST - после теста оставить только функционал генерации. Отображение убрать!
         private void ShowMap(int[,] _map)
         {
             tilemap.ClearAllTiles();
@@ -231,13 +232,13 @@ namespace ProjectDwarf.WorldGeneration
         }
 
 
-
-        private IEnumerator NjRoutine()
+        //TODO: удалить после теста
+        private IEnumerator WaterRoutine()
         {
-            for (; ; )
+            for ( ; ; )
             { 
                 yield return new WaitForSeconds(1.0f);
-                world = nj.GetTickWaterSimulate(world);
+                world = waterController.GetTickWaterSimulate(world);
 
                 ShowMap(world);
             }            
