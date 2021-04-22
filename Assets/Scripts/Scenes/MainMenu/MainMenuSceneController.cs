@@ -1,10 +1,6 @@
-﻿using ProjectDwarf.Constants;
-using ProjectDwarf.Services;
-using ProjectDwarf.UI.WindowsManager;
-using ProjectDwarf.UI.Windows.Loading;
+﻿using ProjectDwarf.Services;
 using ProjectDwarf.UI.Windows.MainMenu;
-using System.Collections;
-using System.Collections.Generic;
+using ProjectDwarf.UI.WindowsManager;
 using UnityEngine;
 
 namespace ProjectDwarf.Scenes.MainMenu
@@ -14,7 +10,7 @@ namespace ProjectDwarf.Scenes.MainMenu
         private void Awake()
         {
             var windowsManager = ComponentLocator.Resolve<WindowsManager>();
-            windowsManager.CreateWindow<MainMenuWindow>(MainMenuWindow.prefabPath, Enums.EnumWindowsLayer.Main);
+            windowsManager?.CreateWindow<MainMenuWindow>(MainMenuWindow.prefabPath, Enums.EnumWindowsLayer.Main);
         }
     }
 }
